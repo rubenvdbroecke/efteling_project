@@ -26,12 +26,14 @@ def get_day_type(date):
 
 
 def round_to_5min(t):
-    delta = datetime.timedelta(minutes=t.minute%5,
+    delta = datetime.timedelta(minutes=t.minute % 5,
                                seconds=t.second,
                                microseconds=t.microsecond)
+
     t -= delta
-    if delta > datetime.timedelta(0):
+    if delta > datetime.timedelta(minutes=2):
         t += datetime.timedelta(minutes=5)
+    else:
+        t -= datetime.timedelta(minutes=t.minute)
     return t
 
-print round_to_5min(datetime.datetime.now())
