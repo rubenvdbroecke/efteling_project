@@ -1,26 +1,31 @@
 import itertools
 import pandas as pd
+import datetime
 from project_managament.progress_bar import print_progress
+from general_functions import get_day_type
 
-attractions = [u'JorisendeDraak', u'Baron1898',
-               u'Droomvlucht', u'DeVliegendeHollander', u'Pirana', u'Python',
-               u'CarnavalFestival', u'Stoomcarrousel', u'FataMorgana', u'Kleuterhof',
-               u'VogelRok', u'VillaVolta', u'Bobbaan', u'HalveMaen', u'OudeTuffer',
-               u'PandaDroom', u'MonsieurCannibale', u'Pagode', u'Kinderspoor',
-               u'Gondoletta', u'KinderAvonturendoolhof', u'PolkaMarina', u'Spookslot',
-               u'Diorama', u'Stoomtrein(Ruigrijk)', u'Stoomtrein(Marerijk)']
+# Assign start time
+datetime.datetime.now()
+# Assign which day type today is
+day_type_today = get_day_type(datetime.date.today())
+
+attractions = ['JorisendeDraak', 'Baron1898', 'Droomvlucht', 'DeVliegendeHollander', 'Pirana', 'Python',
+               'CarnavalFestival', 'Stoomcarrousel', 'FataMorgana', 'Kleuterhof', 'VogelRok', 'VillaVolta',
+               'Bobbaan', 'HalveMaen', 'OudeTuffer', 'PandaDroom', 'MonsieurCannibale', 'Pagode', 'Kinderspoor',
+               'Gondoletta', 'KinderAvonturendoolhof', 'PolkaMarina', 'Spookslot', 'Diorama', 'Stoomtrein(Ruigrijk)',
+               'Stoomtrein(Marerijk)']
 
 response = raw_input("Please enter nr of attractions: ")
 attractions = attractions[:int(response)]
 attractions_perm = itertools.permutations(attractions)
 
 # Dataframe opstellen
-dir_attr_data = 'C:\\Users\\vande\\Dropbox\\Project Management\\Afstanden.csv'
-dir_attr_data = 'C:\\Users\\vande\\Dropbox\\Project Management\\Wandeltijden.csv'
+dir_afstand_data = 'C:\\Users\\vande\\Dropbox\\Project Management\\Efteling Data\\General\\afstanden.csv'
+dir_wandel_data = 'C:\\Users\\vande\\Dropbox\\Project Management\\Efteling Data\\General\\wandeltijden.csv'
 
-attr_df = pd.read_csv(dir_attr_data)
-attr_filter = ['Attr_Name'] + ['Ingang'] + list(attractions)
-filter_length = len(attr_filter) - 1
+attr_df = pd.read_csv(dir_wandel_data, index_col=0)
+attr_filter = ['Ingang'] + list(attractions)
+filter_length = len(attr_filter)
 attr_df = attr_df[attr_filter][:filter_length]
 
 # Permutaties maken
@@ -34,12 +39,21 @@ start = 0
 stop = perm_count
 print 'Number of permutations: {0}'.format(perm_count)
 
-# Empty
+# Read the data and use attractions as index
+dir_duurtijd_data = 'C:\\Users\\vande\\Dropbox\\Project Management\\Efteling Data\\General\\duurtijden_en_capaciteit.csv'
+duurtijd_df = pd.read_csv(dir_duurtijd_data, index_col=0)
+
+# Read the data and use as index
+dir_wachttijd_data = 'C:\\Users\\vande\\Dropbox\\Project Management\\Efteling Data\\Merged\\efteling_data_from_2016-11-02_to_2016-11-21_with_day_types.csv'
+wachttijd_df = pd.read_csv(dir_wachttijd_data, index_col=0)
+
+print wachttijd_df
+
+# Empty distance array
 attr_distances = []
 print_progress(start, stop, prefix='Progress:', suffix='Complete', barLength=50)
 
 for perm in attr_perm:
-    count = 0
     total_distance = 0
     # Zoek afstand van Ingang naar eerste Attractie
     total_distance += attr_df.iloc[0][perm[0]]
@@ -47,8 +61,9 @@ for perm in attr_perm:
     count = 0
     for p in perm:
         if p != perm[-1]:
-            distance = attr_df.iloc[attractions.index(perm[count]) + 1][attractions.index(perm[count + 1]) + 2]
-            total_distance += distance
+            distance = attr_df.ix[perm[count]][perm[count + 1]]
+            duration = duurtijd_df.ix[p]['Tijd']
+            total_distance += distance + duration
             count += 1
     attr_distances.append({'permutation': perm, 'distance': total_distance})
     start += 1
