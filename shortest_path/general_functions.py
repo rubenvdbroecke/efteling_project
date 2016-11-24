@@ -30,10 +30,14 @@ def round_to_5min(t):
                                seconds=t.second,
                                microseconds=t.microsecond)
 
-    t -= delta
     if delta > datetime.timedelta(minutes=2):
-        t += datetime.timedelta(minutes=5)
+        diff = delta.seconds / 60
+        t += datetime.timedelta(minutes=5 - diff)
     else:
-        t -= datetime.timedelta(minutes=t.minute)
-    return t
+        diff = delta.seconds / 60
+        t -= datetime.timedelta(minutes=diff)
+    return datetime.datetime(year=t.year, month=t.month, day=t.day, hour=t.hour, minute=t.minute, second=0, microsecond=0)
 
+
+# time = datetime.datetime(year=2016, month=11, day=27, hour=8, minute=9)
+# print round_to_5min(time)

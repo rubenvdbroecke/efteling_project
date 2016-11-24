@@ -2,10 +2,10 @@ import itertools
 import pandas as pd
 import datetime
 from project_managament.progress_bar import print_progress
-from general_functions import get_day_type
+from general_functions import get_day_type, round_to_5min
 
 # Assign start time
-datetime.datetime.now()
+start_time = datetime.datetime.now()
 # Assign which day type today is
 day_type_today = get_day_type(datetime.date.today())
 
@@ -15,7 +15,7 @@ attractions = ['JorisendeDraak', 'Baron1898', 'Droomvlucht', 'DeVliegendeHolland
                'Gondoletta', 'KinderAvonturendoolhof', 'PolkaMarina', 'Spookslot', 'Diorama', 'Stoomtrein(Ruigrijk)',
                'Stoomtrein(Marerijk)']
 
-response = raw_input("Please enter nr of attractions: ")
+response = raw_input("Please enter nr of attractions: ") or 5
 attractions = attractions[:int(response)]
 attractions_perm = itertools.permutations(attractions)
 
@@ -47,29 +47,39 @@ duurtijd_df = pd.read_csv(dir_duurtijd_data, index_col=0)
 dir_wachttijd_data = 'C:\\Users\\vande\\Dropbox\\Project Management\\Efteling Data\\Merged\\efteling_data_from_2016-11-02_to_2016-11-21_with_day_types.csv'
 wachttijd_df = pd.read_csv(dir_wachttijd_data, index_col=0)
 
-print wachttijd_df
+# Group the data , day_type & name
+grouped_data = wachttijd_df.groupby(['day_type', 'name'], as_index=False).mean()
 
 # Empty distance array
 attr_distances = []
 print_progress(start, stop, prefix='Progress:', suffix='Complete', barLength=50)
 
 for perm in attr_perm:
-    total_distance = 0
+    total_duration = 0
     # Zoek afstand van Ingang naar eerste Attractie
-    total_distance += attr_df.iloc[0][perm[0]]
+    total_duration += attr_df.iloc[0][perm[0]]
 
     count = 0
     for p in perm:
         if p != perm[-1]:
-            distance = attr_df.ix[perm[count]][perm[count + 1]]
-            duration = duurtijd_df.ix[p]['Tijd']
-            total_distance += distance + duration
+            # Calculate different durations
+            walking_duration = attr_df.ix[perm[count]][perm[count + 1]]
+            attr_duration = duurtijd_df.ix[p]['Tijd']
+            # time_of_arrival = round_to_5min(start_time + datetime.timedelta(minutes=walking_duration + attr_duration))
+            waiting_time = grouped_data.loc[(grouped_data['day_type'] == day_type_today) & (grouped_data['name'] == p)]['waiting_time'].values[0]
+
+            total_duration += walking_duration + attr_duration + waiting_time
+
             count += 1
-    attr_distances.append({'permutation': perm, 'distance': total_distance})
+
+    attr_distances.append({'permutation': perm, 'duration': total_duration})
+
     start += 1
     print_progress(start, stop, prefix='Progress:', suffix='Complete', barLength=50)
 
 # Find the shortest path
-min_perm = min(attr_distances, key=lambda x: x['distance'])
+min_perm = min(attr_distances, key=lambda x: x['duration'])
 
 print min_perm
+
+print
