@@ -11,11 +11,11 @@ attractions = ['JorisendeDraak', 'Baron1898', 'Droomvlucht', 'DeVliegendeHolland
                'Gondoletta', 'KinderAvonturendoolhof', 'PolkaMarina', 'Spookslot', 'Diorama', 'Stoomtrein(Ruigrijk)',
                'Stoomtrein(Marerijk)']
 
-
 response = raw_input("Please enter nr of attractions: ") or 5
 
 shuffle(attractions)
 attractions = attractions[:int(response)]
+
 # Permutaties maken
 attr_perm = list(itertools.permutations(attractions))
 
@@ -41,23 +41,19 @@ duurtijd_df = pd.read_csv(dir_duurtijd_data, index_col=0)
 # Read the waiting time data
 dir_wachttijd_data = 'C:\\Users\\vande\\Dropbox\\Project Management\\Efteling Data\\Merged\\efteling_data_from_2016-11-02_to_2016-11-21_with_day_types.csv'
 wachttijd_df = pd.read_csv(dir_wachttijd_data, index_col=0)
-# Change variable name
+# Change variable name of 'hour'
 wachttijd_df = wachttijd_df.rename(columns={'hour': 'time'})
 # Create new variable, for grouping purposes
 wachttijd_df['hour'] = [i[:2] for i in wachttijd_df['time']]
-
 # Group the data , day_type , name and hour
 grouped_data = wachttijd_df.groupby(['day_type', 'name', 'hour'], as_index=False).mean()
 
-# Empty distance array
-attr_distances = []
 print_progress(start, stop, prefix='Progress:', suffix='Complete', barLength=50)
 
-for perm in attr_perm:
-    # print '\n'
-    # print perm
-    # print '\n'
+# Empty distance array
+attr_distances = []
 
+for perm in attr_perm:
     leave_time = now = datetime.datetime.now()
     # Assign start time
     start_time = now
@@ -98,7 +94,7 @@ for perm in attr_perm:
 
             try:
                 waiting_time = grouped_data.loc[
-                    (grouped_data['day_type'] == day_type_today) & (grouped_data['name'] == p) & (
+                    (grouped_data['day_type'] == day_type_today) & (grouped_data['name'] == perm[count + 1]) & (
                         grouped_data['hour'] == round_to_5min(arr_time).strftime('%H'))]['waiting_time'].values[0]
             except IndexError:
                 waiting_time = 0
@@ -116,7 +112,8 @@ for perm in attr_perm:
 
     total_duration = float((leave_time - now).total_seconds()) / 60
 
-    attr_distances.append({'permutation': perm, 'duration': total_duration, 'visiting_hours': visiting_hours, 'start': now})
+    attr_distances.append(
+        {'permutation': perm, 'duration': total_duration, 'visiting_hours': visiting_hours, 'start': now})
 
     start += 1
     print_progress(start, stop, prefix='Progress:', suffix='Complete', barLength=50)
