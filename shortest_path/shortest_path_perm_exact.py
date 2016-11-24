@@ -11,12 +11,13 @@ attractions = ['JorisendeDraak', 'Baron1898', 'Droomvlucht', 'DeVliegendeHolland
                'Gondoletta', 'KinderAvonturendoolhof', 'PolkaMarina', 'Spookslot', 'Diorama', 'Stoomtrein(Ruigrijk)',
                'Stoomtrein(Marerijk)']
 
-shuffle(attractions)
 
 response = raw_input("Please enter nr of attractions: ") or 5
 
+shuffle(attractions)
 attractions = attractions[:int(response)]
-attractions_perm = itertools.permutations(attractions)
+# Permutaties maken
+attr_perm = list(itertools.permutations(attractions))
 
 # Dataframe opstellen
 # dir_afstand_data = 'C:\\Users\\vande\\Dropbox\\Project Management\\Efteling Data\\General\\afstanden.csv'
@@ -26,11 +27,6 @@ attr_df = pd.read_csv(dir_wandel_data, index_col=0)
 attr_filter = ['Ingang'] + list(attractions)
 filter_length = len(attr_filter)
 attr_df = attr_df[attr_filter]
-
-# Permutaties maken
-attr_perm = []
-for i in attractions_perm:
-    attr_perm.append(i)
 
 start = 0
 stop = len(attr_perm)
