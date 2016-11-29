@@ -1,3 +1,4 @@
+import sys
 import itertools
 import pandas as pd
 import datetime
@@ -54,6 +55,7 @@ print_progress(start, stop, prefix='Progress:', suffix='Complete', barLength=50)
 attr_distances = []
 
 for perm in attr_perm:
+    # sys.stdout.write('\r{0}/{1}'.format(start, stop))
     leave_time = now = datetime.datetime.now()
     # Assign start time
     start_time = now
