@@ -6,7 +6,6 @@ from dateutil.parser import parse
 import numpy as np
 import pandas as pd
 import datetime
-import csv
 
 dates = []
 names = []
@@ -55,52 +54,6 @@ for i in ran:
         times.append(list2)
         waiting.append(list4)
 
-    a_url = 'http://eftelstats.nl/dayreport.php?history={}'.format(i)
-    print a_url
-    u = urllib2.urlopen(a_url).read()
-    soup = BeautifulSoup(u, 'html.parser')
-    try:
-        table = soup.find("table", attrs={"class": "table table-striped"})
-
-        # The first tr contains the field names.
-        headings = [th.get_text() for th in table.find("tr").find_all("th")]
-
-        datasets = []
-        for row in table.find_all("tr")[1:]:
-            dataset = zip(headings, (td.get_text() for td in row.find_all("td")))
-            datasets.append(dataset)
-
-        for a, b, c in datasets:
-            attr_name = a[1]
-            try:
-                start_storing = parse(b[1]).time()
-                start_storing_td = datetime.timedelta(hours=start_storing.hour, minutes=start_storing.minute)
-                eind_storing = parse(c[1]).time()
-                eind_storing_td = datetime.timedelta(hours=eind_storing.hour, minutes=eind_storing.minute)
-            except ValueError:
-                if date.weekday() > 4:
-                    eind_storing = datetime.time(hour=19, minute=0)
-                    eind_storing_td = datetime.timedelta(hours=19, minutes=0)
-                else:
-                    eind_storing = datetime.time(hour=18, minute=0)
-                    eind_storing_td = datetime.timedelta(hours=18, minutes=0)
-
-            difference = (eind_storing_td - start_storing_td).seconds / 60
-
-            storingen.append({'name': attr_name,
-                              'date': date,
-                              'start_storing': start_storing,
-                              'stop_storing': eind_storing,
-                              'time_diff': difference})
-    except AttributeError:
-        print 'No Data To Show'
-        storingen.append({'name': '',
-                          'date': '',
-                          'start_storing': 0,
-                          'stop_storing': 0,
-                          'time_diff': 0})
-
-
 x = ({'date': list(itertools.chain(*dates)),
       'name': list(itertools.chain(*names)),
       'hour': list(itertools.chain(*times)),
@@ -115,25 +68,3 @@ print b, a
 
 dir_eft = 'C:\\Users\\vande\\Dropbox\\Project Management\\Efteling Data\\efteling_data_from_{0}_to_{1}.csv'.format(b, a)
 pd.DataFrame(x).to_csv(dir_eft)
-
-names = []
-dates = []
-start_storingen = []
-stop_storingen = []
-differences = []
-
-for s in storingen:
-    names.append(s['name'])
-    dates.append(s['date'])
-    start_storingen.append(s['start_storing'])
-    stop_storingen.append(s['stop_storing'])
-    differences.append(s['time_diff'])
-
-y = ({'date': dates,
-      'name': names,
-      'start_storing': start_storingen,
-      'stop_storing': stop_storingen,
-      'time_diff': differences})
-
-dir_eft = 'C:\\Users\\vande\\Dropbox\\Project Management\\Efteling Data\\efteling_storing_data_from_{0}_to_{1}.csv'.format(b, a)
-pd.DataFrame(y).to_csv(dir_eft)

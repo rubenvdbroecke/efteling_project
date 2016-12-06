@@ -1,9 +1,10 @@
 import sys
+import glob
 import itertools
 import pandas as pd
 import datetime
 from project_managament.progress_bar import print_progress
-from general_functions import get_day_type, round_to_5min
+from general_functions import get_day_type, round_to_5min, get_storingen
 from random import shuffle
 import ast
 
@@ -13,13 +14,16 @@ attractions = ['JorisendeDraak', 'Baron1898', 'Droomvlucht', 'DeVliegendeHolland
                'Gondoletta', 'KinderAvonturendoolhof', 'PolkaMarina', 'Spookslot', 'Diorama', 'Stoomtrein(Ruigrijk)',
                'Stoomtrein(Marerijk)']
 
+for a in get_storingen():
+    attractions.remove(a)
+
 response = raw_input("Please enter nr of attractions: ") or 5
 
 st = datetime.datetime.now()
 # shuffle(attractions)
-# attractions = attractions[:int(response)]
-list_index = x = ast.literal_eval(response)
-attractions = list(attractions[i] for i in list(i - 1 for i in list_index))
+attractions = attractions[:int(response)]
+# list_index = x = ast.literal_eval(response)
+# attractions = list(attractions[i] for i in list(i - 1 for i in list_index))
 
 # Permutaties maken
 attr_perm = list(itertools.permutations(attractions))
@@ -44,7 +48,8 @@ dir_duurtijd_data = 'C:\\Users\\vande\\Dropbox\\Project Management\\Efteling Dat
 duurtijd_df = pd.read_csv(dir_duurtijd_data, index_col=0)
 
 # Read the waiting time data
-dir_wachttijd_data = 'C:\\Users\\vande\\Dropbox\\Project Management\\Efteling Data\\Merged\\efteling_data_from_2016-11-02_to_2016-11-27_with_day_types.csv'
+dir_merged_data = 'C:\\Users\\vande\\Dropbox\\Project Management\\Efteling Data\\Merged'
+dir_wachttijd_data = glob.glob(dir_merged_data + "\\*.csv")[0].replace('\\', '\\\\')
 wachttijd_df = pd.read_csv(dir_wachttijd_data, index_col=0)
 # Change variable name of 'hour'
 wachttijd_df = wachttijd_df.rename(columns={'hour': 'time'})

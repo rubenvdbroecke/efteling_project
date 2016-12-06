@@ -3,14 +3,21 @@ import pandas as pd
 import csv
 from dateutil import parser
 
+# Remove the previous version in 'Merged'
+dir_merged_data = 'C:\\Users\\vande\\Dropbox\\Project Management\\Efteling Data\\Merged'
+os.chdir(dir_merged_data)
+for f in glob.glob("*.csv"):
+    print '{0} is removed'.format(f)
+    os.remove(f)
+
 dir_attr_data = 'C:\\Users\\vande\\Dropbox\\Project Management\\Efteling Data'
 os.chdir(dir_attr_data)
 
 # Get all the .csv files
 appended_data = []
-for file in glob.glob("*.csv"):
-    print file
-    wacht_df = pd.read_csv('{0}\\{1}'.format(dir_attr_data, file))
+for f in glob.glob("*.csv"):
+    print f
+    wacht_df = pd.read_csv('{0}\\{1}'.format(dir_attr_data, f))
     wacht_df = wacht_df.drop('Unnamed: 0', 1)
     appended_data.append(wacht_df)
 
@@ -48,6 +55,7 @@ wacht_df['day_type'] = pd.Series(list_day_type, index=wacht_df.index)
 # Sort by date
 wacht_df = wacht_df.sort_values(by='date', ascending=True)
 
-# Write to csv
+# Write the new file to csv
 wacht_df.to_csv('Merged\\efteling_data_from_{}_to_{}_with_day_types.csv'.format(wacht_df['date'].iloc[0].date(),
                                                                                 wacht_df['date'].iloc[-1].date()))
+
