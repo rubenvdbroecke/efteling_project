@@ -7,6 +7,7 @@ from project_managament.progress_bar import print_progress
 from general_functions import get_day_type, round_to_5min, get_storingen
 from random import shuffle
 import ast
+from efteling_journey import generate_journey
 
 attractions = ['JorisendeDraak', 'Baron1898', 'Droomvlucht', 'DeVliegendeHollander', 'Pirana', 'Python',
                'CarnavalFestival', 'Stoomcarrousel', 'FataMorgana', 'Kleuterhof', 'VogelRok', 'VillaVolta',
@@ -22,6 +23,8 @@ response = raw_input("Please enter nr of attractions: ") or 5
 st = datetime.datetime.now()
 # shuffle(attractions)
 attractions = attractions[:int(response)]
+
+# For custom user input (samples)
 # list_index = x = ast.literal_eval(response)
 # attractions = list(attractions[i] for i in list(i - 1 for i in list_index))
 
@@ -29,7 +32,6 @@ attractions = attractions[:int(response)]
 attr_perm = list(itertools.permutations(attractions))
 
 # Dataframe opstellen
-# dir_afstand_data = 'C:\\Users\\vande\\Dropbox\\Project Management\\Efteling Data\\General\\afstanden.csv'
 dir_wandel_data = 'C:\\Users\\vande\\Dropbox\\Project Management\\Efteling Data\\General\\wandeltijden.csv'
 
 attr_df = pd.read_csv(dir_wandel_data, index_col=0)
@@ -59,17 +61,22 @@ wachttijd_df['hour'] = [i[:2] for i in wachttijd_df['time']]
 grouped_data = wachttijd_df.groupby(['day_type', 'name', 'time'], as_index=False).mean()
 # grouped_data = wachttijd_df.groupby(['day_type', 'name', 'hour'], as_index=False).mean()
 
-print_progress(start, stop, prefix='Progress:', suffix='Complete', barLength=50)
+# print_progress(start, stop, prefix='Progress:', suffix='Complete', barLength=50)
 
 # Empty distance array
 attr_distances = []
 
 # Assign which day type today is
 day_type_today = get_day_type(datetime.date.today())
+# For custom user input
+# ham = raw_input('Enter hour and minute: ').split('u')
 
 for perm in attr_perm:
     sys.stdout.write('\r{0}/{1}'.format(start, stop))
     leave_time = now = datetime.datetime.now()
+    # For custom user input
+    # leave_time = now = datetime.datetime(year=2016, month=12, day=6, hour=int(ham[0]), minute=int(ham[1]), second=0)
+
     # Assign start time
     start_time = now
     # print 'Start time of the visit: {0}'.format(start_time)
@@ -82,15 +89,18 @@ for perm in attr_perm:
     try:
         waiting_time = grouped_data.loc[
             (grouped_data['day_type'] == day_type_today) & (grouped_data['name'] == perm[0]) & (
-                grouped_data['time'] == round_to_5min(arr_time).strftime('%H:%M'))]['waiting_time'].values[0]
+                grouped_data['time'] == round_to_5min(arr_time).strftime('%H:%M:00'))]['waiting_time'].values[0]
     except IndexError:
         waiting_time = 0
 
-    # print 'WAITING time of {0} is {1} minutes'.format(perm[0], waiting_time)
+    # print 'WAITING time of {0} is {1} minutes on {2}'.format(perm[0], waiting_time, round_to_5min(arr_time).strftime('%H:%M'))
     start_time += datetime.timedelta(minutes=waiting_time + attr_df.iloc[0][perm[0]])
 
     count = 0
     visiting_hours = [start_time]
+    attraction_time = [float(duurtijd_df.ix[perm[0]]['Tijd']) / 60]
+    travel_time = [attr_df.iloc[0][perm[0]]]
+    queuing_time = [0]
 
     # print 'Arrive in {0} at {1}'.format(perm[0], start_time)
     start_time += datetime.timedelta(minutes=float(duurtijd_df.ix[perm[0]]['Tijd']) / 60)
@@ -108,14 +118,23 @@ for perm in attr_perm:
             try:
                 waiting_time = grouped_data.loc[
                     (grouped_data['day_type'] == day_type_today) & (grouped_data['name'] == perm[count + 1]) & (
-                        grouped_data['time'] == round_to_5min(arr_time).strftime('%H:%M'))]['waiting_time'].values[0]
+                        grouped_data['time'] == round_to_5min(arr_time).strftime('%H:%M:00'))]['waiting_time'].values[0]
             except IndexError:
-                waiting_time = 0
+                for i in xrange(100):
+                    idx = grouped_data[(grouped_data['day_type'] == day_type_today) & (grouped_data['name'] == perm[count + 1]) & (
+                        grouped_data['time'] == (round_to_5min(arr_time) - datetime.timedelta(minutes=i * 5)).strftime('%H:%M:00'))].index.tolist()
+                    if len(idx) > 0:
+                        waiting_time = grouped_data.loc[idx[0]]['waiting_time']
+                        idx = []
+                        break
 
-            # print 'WAITING time of {0} is {1} minutes'.format(perm[count + 1], waiting_time)
+            # print 'WAITING time of {0} is {1} minutes on {2}'.format(perm[count + 1], waiting_time, round_to_5min(arr_time).strftime('%H:%M'))
 
             arr_time += datetime.timedelta(minutes=waiting_time)
             visiting_hours.append(arr_time)
+            attraction_time.append(float(duurtijd_df.ix[perm[count + 1]]['Tijd']) / 60)
+            travel_time.append(attr_df.ix[perm[count]][perm[count + 1]])
+            queuing_time.append(waiting_time)
 
             # print 'Arrive in {0} at {1}'.format(perm[count + 1], arr_time)
             start_time = arr_time + datetime.timedelta(minutes=float(duurtijd_df.ix[perm[count + 1]]['Tijd']) / 60)
@@ -126,10 +145,11 @@ for perm in attr_perm:
     total_duration = float((leave_time - now).total_seconds()) / 60
 
     attr_distances.append(
-        {'permutation': perm, 'duration': total_duration, 'visiting_hours': visiting_hours, 'start': now})
+        {'permutation': perm, 'duration': total_duration, 'visiting_hours': visiting_hours, 'start': now,
+         'attraction_time': attraction_time, 'travel_time': travel_time, 'queuing_time': queuing_time})
 
     start += 1
-    print_progress(start, stop, prefix='Progress:', suffix='Complete', barLength=50)
+    # print_progress(start, stop, prefix='Progress:', suffix='Complete', barLength=50)
 
 # Find the shortest path
 min_perm = min(attr_distances, key=lambda x: x['duration'])
@@ -137,6 +157,16 @@ print datetime.datetime.now() - st
 print 'Attractions:'
 print '\t{0}: Entrance'.format(min_perm['start'].strftime('%Hu%M'))
 for i in xrange(len(min_perm['permutation'])):
-    print '\t{0}: {1}'.format(min_perm['visiting_hours'][i].strftime('%Hu%M'), min_perm['permutation'][i])
+    print '\t{0}: {1}\tTw: {2}\tTq: {3}\tTa:{4}'.format(min_perm['visiting_hours'][i].strftime('%Hu%M'),
+                                                       min_perm['permutation'][i],
+                                                       min_perm['travel_time'][i],
+                                                       min_perm['queuing_time'][i],
+                                                       min_perm['attraction_time'][i]
+                                                       )
 
-print '\nTotal Duration: {0} minutes'.format(round(min_perm['duration'], 2))
+print '\nEnd of Journey: {0}'.format((min_perm['visiting_hours'][-1] + datetime.timedelta(minutes=int(min_perm['attraction_time'][-1]))).strftime('%H:%M'))
+print 'Total Duration: {0} minutes'.format(round(min_perm['duration'], 2))
+
+a_s = ['Entrance'] + list(min_perm['permutation'])
+print a_s
+generate_journey(a_s)
