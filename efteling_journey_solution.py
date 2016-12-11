@@ -18,10 +18,17 @@ if last_date != max_date:
     import project_managament.shortest_path.efteling_data_merge
 
 print 'Which algorithm do you want to use?'
-answer = raw_input('Permutation (type P) or Genetic Algorithm (type GA): ')
+print "Don't choose Permutations if you want more than 8 attractions"
+answer = raw_input('Permutation (type P) or Genetic Algorithm (type GA) or Activity Crasher (AC): ')
+answers = ['p', 'ga', 'ac']
 
-if answer == 'P':
+while answer not in answers:
+    print 'WRONG!!!! Please type in a correct answer.'
+    answer = raw_input('Permutation (type P) or Genetic Algorithm (type GA) or Activity Crasher (AC): ')
+
+if answer.lower() == 'p':
     import project_managament.shortest_path.shortest_path_perm_exact
-else:
-    # Import the script it should perform
-    print ''
+elif answer.lower() == 'ga':
+    import project_managament.genetic_PSO.genetic_runner
+elif answer.lower() == 'ac':
+    import project_managament.genetic_PSO.crash_it
