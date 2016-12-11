@@ -1,3 +1,6 @@
+## Run the program
+Run efteling_journey_solution.py
+
 # efteling_project
 efteling data collect and analysis
 
