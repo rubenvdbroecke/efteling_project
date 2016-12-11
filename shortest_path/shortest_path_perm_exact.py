@@ -3,8 +3,10 @@ import glob
 import itertools
 import pandas as pd
 import datetime
+import os
 from project_managament.progress_bar import print_progress
 from general_functions import get_day_type, round_to_5min, get_storingen
+from project_managament.eftel_data_filename import file_path
 from random import shuffle
 import ast
 from efteling_journey import generate_journey
@@ -32,7 +34,7 @@ attractions = attractions[:int(response)]
 attr_perm = list(itertools.permutations(attractions))
 
 # Dataframe opstellen
-dir_wandel_data = 'C:\\Users\\vande\\Dropbox\\Project Management\\Efteling Data\\General\\wandeltijden.csv'
+dir_wandel_data = file_path + '/General/wandeltijden.csv'
 
 attr_df = pd.read_csv(dir_wandel_data, index_col=0)
 attr_filter = ['Ingang'] + list(attractions)
@@ -46,11 +48,11 @@ print 'Number of attractions: {0} {1}\n' \
       'Number of permutations: {2}\n'.format(len(attractions), attractions, len(attr_perm))
 
 # Read the duration data and use attractions as index
-dir_duurtijd_data = 'C:\\Users\\vande\\Dropbox\\Project Management\\Efteling Data\\General\\duurtijden_en_capaciteit.csv'
+dir_duurtijd_data = file_path + 'General/duurtijden_en_capaciteit.csv'
 duurtijd_df = pd.read_csv(dir_duurtijd_data, index_col=0)
 
 # Read the waiting time data
-dir_merged_data = 'C:\\Users\\vande\\Dropbox\\Project Management\\Efteling Data\\Merged'
+dir_merged_data = file_path + '/Merged'
 dir_wachttijd_data = glob.glob(dir_merged_data + "\\*.csv")[0].replace('\\', '\\\\')
 wachttijd_df = pd.read_csv(dir_wachttijd_data, index_col=0)
 # Change variable name of 'hour'
@@ -167,6 +169,7 @@ for i in xrange(len(min_perm['permutation'])):
 print '\nEnd of Journey: {0}'.format((min_perm['visiting_hours'][-1] + datetime.timedelta(minutes=int(min_perm['attraction_time'][-1]))).strftime('%H:%M'))
 print 'Total Duration: {0} minutes'.format(round(min_perm['duration'], 2))
 
+# Pass the sequence to generate map (only works for the first 8 attractions(for now))
 a_s = ['Entrance'] + list(min_perm['permutation'])
-print a_s
 generate_journey(a_s)
+

@@ -6,6 +6,8 @@ from dateutil.parser import parse
 import numpy as np
 import pandas as pd
 import datetime
+from project_managament.eftel_data_filename import file_path
+
 
 dates = []
 names = []
@@ -66,5 +68,6 @@ b = (datetime.date.today() - datetime.timedelta(ran[-1])).strftime("%Y-%m-%d").r
 
 print b, a
 
-dir_eft = 'C:\\Users\\vande\\Dropbox\\Project Management\\Efteling Data\\efteling_data_from_{0}_to_{1}.csv'.format(b, a)
+
+dir_eft = file_path + 'efteling_data_from_{0}_to_{1}.csv'.format(b, a)
 pd.DataFrame(x).to_csv(dir_eft)
