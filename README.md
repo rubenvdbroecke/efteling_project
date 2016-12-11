@@ -1,8 +1,8 @@
+# efteling_project
+efteling data collect, analysis and interpretation
+
 ## Run the program
 Run efteling_journey_solution.py
-
-# efteling_project
-efteling data collect and analysis
 
 ## data collect
 Scrape eftelstats
@@ -15,3 +15,9 @@ Merge all collected data
 
 ## shortest path
 Make permutations and find shortest path
+
+## genetic_PSO
+Find optimal solution via genetic algorithm
+
+## activity crashing
+Simulation (crash_it.py)
