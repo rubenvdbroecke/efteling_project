@@ -2,6 +2,7 @@
 efteling data collect, analysis and interpretation
 
 ## Run the program
+Clone github url into JetBrains-PyCharm
 Run efteling_journey_solution.py
 
 ## data collect
